@@ -58,7 +58,7 @@
 
                                 <tbody>
                                     <template v-for="decodedItem in decoded">
-                                        <tr>
+                                        <tr v-bind:key="decodedItem.index">
                                             <td scope="row">{{ decodedItem.index }}</td>
                                             <td scope="row">{{ decodedItem.argument }}</td>
                                             <td scope="row"
@@ -105,70 +105,66 @@
                 this.decoded = []
                 this.strippedFunctionSignature = null
 
-                let typesArray = typesArrayToParamsArray(this.typesArrayString)
+                let typesArray = this.typesArrayToParamsArray(this.typesArrayString)
 
                 let decoded
 
                 decoded = web3.eth.abi.decodeParameters(
                     typesArray,
-                    stripEncodedABI(this.encodedABI)
+                    this.stripEncodedABI(this.encodedABI)
                 )
 
-                this.decoded = zipTypesValues(
+                this.decoded = this.zipTypesValues(
                     typesArray,
                     decoded
                 )
+            },
+            typesArrayToParamsArray(typesArrayString) {
+                let types = typesArrayString.split(',');
+
+                let paramsArray = [];
+
+                for (let i = 0; i < types.length; i++) {
+                    let type = types[i].trim();
+                    paramsArray.push(type);
+                }
+
+                return paramsArray;
+            },
+            stripEncodedABI(ABIString) {
+                if (ABIString.startsWith('0x')) {
+                    ABIString = ABIString.substring(2)
+                }
+
+                this.strippedFunctionSignature = false;
+                if (ABIString.length % 64 != 0) {
+                    ABIString = ABIString.substring(8)
+                    this.strippedFunctionSignature = true;
+                }
+
+                return '0x' + ABIString;
+            },
+            zipTypesValues(typesArray, valuesArray) {
+                let zipped = []
+
+                for (let i = 0; i < typesArray.length; i++) {
+                    let index = i + 1;
+                    let argument = typesArray[i];
+                    let value = valuesArray[i];
+
+                    if (argument.startsWith('uint') || argument.startsWith('int')) {
+                        value = new BN(value)
+                    }
+
+                    zipped.push({
+                        index,
+                        argument,
+                        value,
+                    });
+                }
+
+                return zipped;
             }
         }
     };
-
-    function typesArrayToParamsArray(typesArrayString) {
-        let types = typesArrayString.split(',');
-
-        let paramsArray = [];
-
-        for (let i = 0; i < types.length; i++) {
-            let type = types[i].trim();
-            paramsArray.push(type);
-        }
-
-        return paramsArray;
-    }
-
-    function stripEncodedABI(ABIString) {
-        if (ABIString.startsWith('0x')) {
-            ABIString = ABIString.substring(2)
-        }
-
-        app.strippedFunctionSignature = false;
-        if (ABIString.length % 64 != 0) {
-            ABIString = ABIString.substring(8)
-            app.strippedFunctionSignature = true;
-        }
-
-        return '0x' + ABIString;
-    }
-
-    function zipTypesValues(typesArray, valuesArray) {
-        let zipped = []
-
-        for (let i = 0; i < typesArray.length; i++) {
-            let index = i + 1;
-            let argument = typesArray[i];
-            let value = valuesArray[i];
-
-            if (argument.startsWith('uint') || argument.startsWith('int')) {
-                value = new BN(value)
-            }
-
-            zipped.push({
-                index,
-                argument,
-                value,
-            });
-        }
-
-        return zipped;
-    }
-
 </script>
