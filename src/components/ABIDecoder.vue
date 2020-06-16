@@ -1,5 +1,6 @@
 <template>
     <div>
+        {{ price }}
         <div class="row mb-3">
             <div class="col-sm">
                 <form v-on:submit.prevent="decode">
@@ -82,17 +83,24 @@
 </template>
 
 <script>
-    let web3 = new Web3(Web3.givenProvider);
-    let BN = web3.utils.BN;
-
     export default {
         name: 'ABIDecoder',
         props: {},
+        beforeCreate: async function () {
+            this.web3 = new Web3(Web3.givenProvider);
+            this.BN = this.web3.utils.BN;
+
+            let price = await this.$http.get('https://www.4byte.directory/api/v1/signatures/?hex_signature=0xa9059cbb')
+            this.price = price
+        },
         data: function () {
             return {
+                //
+                price: '',
+
                 // Inputs
-                encodedABI: '0x0000000000000000000000003225117fbd6bd139be4be8deae9d0aa7825bd2390000000000000000000000003225117fbd6bd139be4be8deae9d0aa7825bd2390000000000000000000000000000000000003008000100000000000000000000',
-                typesArrayString: 'address, address, uint',
+                encodedABI: '0xa9059cbb000000000000000000000000df7a506f2d6af5c0a47b873bb51526819997beab0000000000000000000000000000000000000000000000000000000010103e60',
+                typesArrayString: 'address _to, uint256 _value',
 
                 // Outputs
                 strippedFunctionSignature: false,
@@ -109,7 +117,7 @@
 
                 let decoded
 
-                decoded = web3.eth.abi.decodeParameters(
+                decoded = this.web3.eth.abi.decodeParameters(
                     typesArray,
                     this.stripEncodedABI(this.encodedABI)
                 )
@@ -153,7 +161,7 @@
                     let value = valuesArray[i];
 
                     if (argument.startsWith('uint') || argument.startsWith('int')) {
-                        value = new BN(value)
+                        value = new this.BN(value)
                     }
 
                     zipped.push({
