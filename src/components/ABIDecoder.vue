@@ -173,6 +173,7 @@
                         }
                     }
 
+                    // Sort by name
                     abiElementTypeOptions.sort((a, b) => {
                         if (a.name > b.name) {
                             return 1;
