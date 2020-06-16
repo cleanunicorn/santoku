@@ -46,8 +46,8 @@
             <div v-if="decodeMethod == 'ABI'">
                 <div class="form-group">
                     <label for="ABITextarea">ABI</label>
-                    <textarea class="form-control text-monospace" id="ABITextarea"
-                        rows="5" v-model="abi"></textarea>
+                    <textarea class="form-control text-monospace" id="ABITextarea" rows="5"
+                        v-model="abi"></textarea>
                 </div>
 
                 <div class="form-group">
@@ -69,17 +69,19 @@
                                 {{ abiItem.name }}
                                 <!-- Arguments -->
                                 (
-                                    <template v-for="(input, index) in abiItem.inputs">
-                                        {{ input.type }} {{ input.name }}<template v-if="index + 1 < abiItem.inputs.length">,</template>
-                                    </template>
+                                <template v-for="(input, index) in abiItem.inputs">
+                                    {{ input.type }} {{ input.name }}<template
+                                        v-if="index + 1 < abiItem.inputs.length">,</template>
+                                </template>
                                 )
                                 <!-- Outputs -->
                                 <template v-if="abiItem.outputs">
                                     returns
                                     (
-                                        <template v-for="(output, index) in abiItem.outputs">
-                                            {{ output.type }} {{ output.name }}<template v-if="index + 1 < abiItem.outputs.length">,</template>
-                                        </template>
+                                    <template v-for="(output, index) in abiItem.outputs">
+                                        {{ output.type }} {{ output.name }}<template
+                                            v-if="index + 1 < abiItem.outputs.length">,</template>
+                                    </template>
                                     )
                                 </template>
                             </option>
@@ -160,6 +162,9 @@
                         }
                     }
                     this.abiElementTypes = abiElementTypes
+
+                    // Try to identify the input based on the function signature
+                    this.matchFunctionSignature(this.abiObject, this.encodedABI)
                 },
                 immediate: true,
             },
@@ -185,6 +190,9 @@
                     })
 
                     this.abiElementTypeOptions = abiElementTypeOptions
+
+                    // Try to identify the input based on the function signature
+                    this.matchFunctionSignature(this.abiObject, this.encodedABI)
                 },
                 immediate: true,
             },
@@ -246,7 +254,8 @@
                         for (let i = 0; i < this.abiSelectedItem.inputs.length; i++) {
                             let zippedItem = {
                                 index: i,
-                                argument: this.abiSelectedItem.inputs[i].type + " " + this.abiSelectedItem.inputs[i].name,
+                                argument: this.abiSelectedItem.inputs[i].type + " " + this
+                                    .abiSelectedItem.inputs[i].name,
                                 value: decoded[i],
                             }
 
@@ -256,9 +265,6 @@
                         }
                         break
                 }
-            },
-            processABI() {
-
             },
 
             // Internal functions
@@ -307,6 +313,15 @@
                 }
 
                 return zipped;
+            },
+            matchFunctionSignature(abiObject, encodedInput) {
+                for (let i = 0; i < abiObject.length; i++) {
+                    if (encodedInput.startsWith(this.web3.eth.abi.encodeFunctionSignature(abiObject[
+                            i]))) {
+                        this.abiSelectedItem = abiObject[i]
+                        return
+                    }
+                }
             }
         }
     };
