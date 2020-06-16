@@ -11,7 +11,6 @@
             </div>
 
             <div class="form-group">
-
                 <div class="form-check">
                     <input class="form-check-input" type="radio" name="decodeMethod"
                         id="decodeMethod1" value="typeList" checked v-model="decodeMethod">
@@ -27,7 +26,6 @@
                         ABI
                     </label>
                 </div>
-
             </div>
 
             <div class="form-group" v-if="decodeMethod == 'typeList'">
@@ -53,10 +51,10 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="elementType">Element type</label>
+                    <label for="elementType">Element type (function, constructor, event)</label>
                     <select class="form-control" id="elementType" v-model="abiSelectedElementType">
                         <template v-for="el in abiElementTypes">
-                            <option v-bind:key="'abi-'+el">
+                            <option v-bind:key="`abi-${el}`">
                                 {{ el }}
                             </option>
                         </template>
@@ -64,29 +62,37 @@
                 </div>
 
                 <div class="form-group">
-                    <label for="elementType">Select</label>
-                    <select class="form-control text-monospace" id="elementType">
-                        <template v-for="abiItem in abiElementTypeOptions">
-                            <option>
-                                {{ abiItem.type }}
+                    <label for="elementType">Select item</label>
+                    <select class="form-control" id="elementType" v-model="abiSelectedItem">
+                        <template v-for="(abiItem, index) in abiElementTypeOptions">
+                            <option v-bind:key="`abiItem-${index}`" v-bind:value="abiItem">
                                 {{ abiItem.name }}
                                 <!-- Arguments -->
-                                (<template v-for="(input, index) in abiItem.inputs">{{ input.name }}{{ input.type }}<template v-if="index + 1 < abiItem.inputs.length">,</template></template>)
+                                (
+                                    <template v-for="(input, index) in abiItem.inputs">
+                                        {{ input.type }} {{ input.name }}<template v-if="index + 1 < abiItem.inputs.length">,</template>
+                                    </template>
+                                )
                                 <!-- Outputs -->
-                                (<template v-for="(output, index) in abiItem.outputs">{{ output.name }}{{ output.type }}<template v-if="index + 1 < abiItem.outputs.length">,</template></template>)
+                                <template v-if="abiItem.outputs">
+                                    returns
+                                    (
+                                        <template v-for="(output, index) in abiItem.outputs">
+                                            {{ output.type }} {{ output.name }}<template v-if="index + 1 < abiItem.outputs.length">,</template>
+                                        </template>
+                                    )
+                                </template>
                             </option>
                         </template>
                     </select>
                 </div>
             </div>
 
-            <button type="submit" class="btn btn-primary">Decode</button>
+            <button type="submit" class="btn btn-primary btn-lg btn-block">Decode</button>
         </form>
 
         <div class="row mb-3">
             <div class="col-sm">
-                !!Result!!
-
                 <div class="row mb-3">
                     <div class="col-sm"
                         v-if="(strippedFunctionSignature == false) || (strippedFunctionSignature == true)">
@@ -167,6 +173,16 @@
                         }
                     }
 
+                    abiElementTypeOptions.sort((a, b) => {
+                        if (a.name > b.name) {
+                            return 1;
+                        }
+                        if (a.name < b.name) {
+                            return -1;
+                        }
+                        return 0;
+                    })
+
                     this.abiElementTypeOptions = abiElementTypeOptions
                 },
                 immediate: true,
@@ -178,7 +194,7 @@
                 encodedABI: '0xa9059cbb000000000000000000000000df7a506f2d6af5c0a47b873bb51526819997beab0000000000000000000000000000000000000000000000000000000010103e60',
 
                 // Type list
-                typesArrayString: 'address _to, uint256 _value',
+                typesArrayString: 'address from, address to, uint value',
 
                 // ABI
                 abi: '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_upgradedAddress","type":"address"}],"name":"deprecate","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_evilUser","type":"address"}],"name":"addBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"upgradedAddress","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balances","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"maximumFee","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unpause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_maker","type":"address"}],"name":"getBlackListStatus","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowed","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"paused","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"pause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newBasisPoints","type":"uint256"},{"name":"newMaxFee","type":"uint256"}],"name":"setParams","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"issue","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"redeem","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"basisPointsRate","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isBlackListed","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_clearedUser","type":"address"}],"name":"removeBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"MAX_UINT","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_blackListedUser","type":"address"}],"name":"destroyBlackFunds","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_initialSupply","type":"uint256"},{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Issue","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Redeem","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newAddress","type":"address"}],"name":"Deprecate","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"feeBasisPoints","type":"uint256"},{"indexed":false,"name":"maxFee","type":"uint256"}],"name":"Params","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_blackListedUser","type":"address"},{"indexed":false,"name":"_balance","type":"uint256"}],"name":"DestroyedBlackFunds","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_user","type":"address"}],"name":"AddedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_user","type":"address"}],"name":"RemovedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[],"name":"Pause","type":"event"},{"anonymous":false,"inputs":[],"name":"Unpause","type":"event"}]',
@@ -187,6 +203,7 @@
                 abiElementTypes: [],
                 abiSelectedElementType: 'function',
                 abiElementTypeOptions: [],
+                abiSelectedItem: {},
 
                 // Decode type
                 decodeMethod: 'ABI',
@@ -199,27 +216,45 @@
         methods: {
             decode() {
                 // Clear output
-                this.decoded = []
                 this.strippedFunctionSignature = null
+                this.decoded = []
 
-                let typesArray = this.typesArrayToParamsArray(this.typesArrayString)
+                switch (this.decodeMethod) {
+                    case 'typeList':
+                        let typesArray = this.typesArrayToParamsArray(this.typesArrayString)
 
-                let decoded
+                        this.decoded = this.web3.eth.abi.decodeParameters(
+                            typesArray,
+                            this.stripEncodedABI(this.encodedABI)
+                        )
 
-                decoded = this.web3.eth.abi.decodeParameters(
-                    typesArray,
-                    this.stripEncodedABI(this.encodedABI)
-                )
+                        this.decoded = this.zipTypesValues(
+                            typesArray,
+                            this.decoded
+                        )
+                        break
 
-                // decoded = this.web3.eth.abi.decodeParameters(
-                //     'transfer(address _to, uint256 _value)',
-                //     '0xa9059cbb000000000000000000000000df7a506f2d6af5c0a47b873bb51526819997beab0000000000000000000000000000000000000000000000000000000010103e60'
-                // )
+                    case 'ABI':
+                        let decoded = this.web3.eth.abi.decodeParameters(
+                            this.abiSelectedItem.inputs,
+                            this.stripEncodedABI(this.encodedABI),
+                        )
 
-                this.decoded = this.zipTypesValues(
-                    typesArray,
-                    decoded
-                )
+                        console.log(decoded)
+
+                        for (let i = 0; i < this.abiSelectedItem.inputs.length; i++) {
+                            let zippedItem = {
+                                index: i,
+                                argument: this.abiSelectedItem.inputs[i].type + " " + this.abiSelectedItem.inputs[i].name,
+                                value: decoded[i],
+                            }
+
+                            console.log(zippedItem)
+
+                            this.decoded.push(zippedItem)
+                        }
+                        break
+                }
             },
             processABI() {
 
