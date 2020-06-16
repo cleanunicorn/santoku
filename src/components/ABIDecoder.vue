@@ -89,15 +89,9 @@
         beforeCreate: async function () {
             this.web3 = new Web3(Web3.givenProvider);
             this.BN = this.web3.utils.BN;
-
-            let price = await this.$http.get('https://www.4byte.directory/api/v1/signatures/?hex_signature=0xa9059cbb')
-            this.price = price
         },
         data: function () {
             return {
-                //
-                price: '',
-
                 // Inputs
                 encodedABI: '0xa9059cbb000000000000000000000000df7a506f2d6af5c0a47b873bb51526819997beab0000000000000000000000000000000000000000000000000000000010103e60',
                 typesArrayString: 'address _to, uint256 _value',
