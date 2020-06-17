@@ -39,6 +39,9 @@
     ],
     "parserOptions": {
       "parser": "babel-eslint"
+    },
+    "rules": {
+      "max-len": ["warn", 120]
     }
   },
   "browserslist": [

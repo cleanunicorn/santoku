@@ -88,13 +88,17 @@
           id="typesArrayStringHelp"
           class="form-text text-muted"
         >
-          Choose from:
-          <span class="text-monospace">bool</span>,
-          <span class="text-monospace">int</span>,
-          <span class="text-monospace">address</span>,
-          <span class="text-monospace">bytes</span>,
-          <span class="text-monospace">string</span>,
-          <span class="text-monospace">byte</span>.
+          i.e.
+          <span>bool</span>,
+          <span>int</span>,
+          <span>uint</span>,
+          <span>address</span>,
+          <span>bytes</span>,
+          <span>string</span>.
+          <a
+            href="https://solidity.readthedocs.io/en/latest/types.html"
+            class="badge badge-info"
+          >See full list</a>
         </small>
       </div>
 
@@ -139,27 +143,14 @@
                 {{ abiItem.name }}
                 <!-- Arguments -->
                 (
-                <template v-for="(input, index) in abiItem.inputs">
+                <template v-for="(input, inputIndex) in abiItem.inputs">
                   {{ input.type }} {{ input.name }}<template
-                    v-if="index + 1 < abiItem.inputs.length"
+                    v-if="inputIndex + 1 < abiItem.inputs.length"
                   >
                     ,
                   </template>
                 </template>
                 )
-                <!-- Outputs -->
-                <template v-if="abiItem.outputs">
-                  returns
-                  (
-                  <template v-for="(output, index) in abiItem.outputs">
-                    {{ output.type }} {{ output.name }}<template
-                      v-if="index + 1 < abiItem.outputs.length"
-                    >
-                      ,
-                    </template>
-                  </template>
-                  )
-                </template>
               </option>
             </template>
           </select>
@@ -172,17 +163,40 @@
           v-if="decodeMethod == '4byteDirectory'"
         >
           <label for="typesArrayString">Results</label>
-          <select
-            class="form-control"
-            id="resultsSelect"
-            v-model="fourByteSelected"
-          >
-            <template v-for="(fourByteItem, index) in fourByteResults">
-              <option :key="`fourByteItem-${index}`">
-                {{ fourByteItem }}
-              </option>
-            </template>
-          </select>
+          <template v-if="fourByteRequestLoading">
+            <div>
+              <div
+                class="spinner-border text-primary"
+                role="status"
+              >
+                <span class="sr-only">Loading...</span>
+              </div>
+            </div>
+          </template>
+          <template v-else-if="fourByteResults.length">
+            <select
+              class="form-control"
+              id="resultsSelect"
+              v-model="fourByteSelected"
+            >
+              <template v-for="(fourByteItem, index) in fourByteResults">
+                <option
+                  :key="`fourByteItem-${index}`"
+                  selected
+                >
+                  {{ fourByteItem.text_signature }}
+                </option>
+              </template>
+            </select>
+          </template>
+          <template v-else>
+            <input
+              class="form-control"
+              type="text"
+              placeholder="Function signature was not found"
+              readonly
+            >
+          </template>
         </div>
       </template>
 
@@ -263,6 +277,8 @@
 </template>
 
 <script>
+import Web3 from 'web3';
+
 export default {
   name: 'ABIDecoder',
   props: {},
@@ -278,7 +294,7 @@ export default {
 
         // Compute unique types of abi elements
         const abiElementTypes = [];
-        for (const abiItemIndex in this.abiObject) {
+        for (let abiItemIndex = 0; abiItemIndex < this.abiObject.length; abiItemIndex += 1) {
           const abiItem = this.abiObject[abiItemIndex];
           if (!abiElementTypes.includes(abiItem.type)) {
             abiElementTypes.push(abiItem.type);
@@ -295,8 +311,8 @@ export default {
       handler(val) {
         const abiElementTypeOptions = [];
 
-        for (const abiItemIndex in this.abiObject) {
-          if (this.abiObject[abiItemIndex].type == val) {
+        for (let abiItemIndex = 0; abiItemIndex < this.abiObject.length; abiItemIndex += 1) {
+          if (this.abiObject[abiItemIndex].type === val) {
             abiElementTypeOptions.push(this.abiObject[abiItemIndex]);
           }
         }
@@ -319,6 +335,26 @@ export default {
       },
       immediate: true,
     },
+    decodeMethod: {
+      async handler(val) {
+        if (val === '4byteDirectory') {
+          this.fourByteRequestLoading = true;
+
+          const funcSigResult = this.extractFunctionSignature(this.encodedABI);
+          if (!funcSigResult.found) {
+            // Display error
+            console.log('Implement `!funcSigResult.found`');
+            return;
+          }
+
+          const funcSig = funcSigResult.functionSignature;
+          const requestResult = await this.$http.get(this.fourByteDirectoryUrl + funcSig);
+          this.fourByteResults = requestResult.data.results;
+
+          this.fourByteRequestLoading = false;
+        }
+      },
+    },
   },
   data() {
     return {
@@ -331,6 +367,11 @@ export default {
       // ABI
       abi: '[{"constant":true,"inputs":[],"name":"name","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_upgradedAddress","type":"address"}],"name":"deprecate","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_spender","type":"address"},{"name":"_value","type":"uint256"}],"name":"approve","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"deprecated","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_evilUser","type":"address"}],"name":"addBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_from","type":"address"},{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transferFrom","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"upgradedAddress","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"balances","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"decimals","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"maximumFee","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"_totalSupply","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"unpause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_maker","type":"address"}],"name":"getBlackListStatus","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"},{"name":"","type":"address"}],"name":"allowed","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"paused","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"who","type":"address"}],"name":"balanceOf","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[],"name":"pause","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"getOwner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"owner","outputs":[{"name":"","type":"address"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"symbol","outputs":[{"name":"","type":"string"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_to","type":"address"},{"name":"_value","type":"uint256"}],"name":"transfer","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"newBasisPoints","type":"uint256"},{"name":"newMaxFee","type":"uint256"}],"name":"setParams","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"issue","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"amount","type":"uint256"}],"name":"redeem","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[{"name":"_owner","type":"address"},{"name":"_spender","type":"address"}],"name":"allowance","outputs":[{"name":"remaining","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[],"name":"basisPointsRate","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":true,"inputs":[{"name":"","type":"address"}],"name":"isBlackListed","outputs":[{"name":"","type":"bool"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"_clearedUser","type":"address"}],"name":"removeBlackList","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":true,"inputs":[],"name":"MAX_UINT","outputs":[{"name":"","type":"uint256"}],"payable":false,"stateMutability":"view","type":"function"},{"constant":false,"inputs":[{"name":"newOwner","type":"address"}],"name":"transferOwnership","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"constant":false,"inputs":[{"name":"_blackListedUser","type":"address"}],"name":"destroyBlackFunds","outputs":[],"payable":false,"stateMutability":"nonpayable","type":"function"},{"inputs":[{"name":"_initialSupply","type":"uint256"},{"name":"_name","type":"string"},{"name":"_symbol","type":"string"},{"name":"_decimals","type":"uint256"}],"payable":false,"stateMutability":"nonpayable","type":"constructor"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Issue","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"amount","type":"uint256"}],"name":"Redeem","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"newAddress","type":"address"}],"name":"Deprecate","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"feeBasisPoints","type":"uint256"},{"indexed":false,"name":"maxFee","type":"uint256"}],"name":"Params","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_blackListedUser","type":"address"},{"indexed":false,"name":"_balance","type":"uint256"}],"name":"DestroyedBlackFunds","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_user","type":"address"}],"name":"AddedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":false,"name":"_user","type":"address"}],"name":"RemovedBlackList","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"owner","type":"address"},{"indexed":true,"name":"spender","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Approval","type":"event"},{"anonymous":false,"inputs":[{"indexed":true,"name":"from","type":"address"},{"indexed":true,"name":"to","type":"address"},{"indexed":false,"name":"value","type":"uint256"}],"name":"Transfer","type":"event"},{"anonymous":false,"inputs":[],"name":"Pause","type":"event"},{"anonymous":false,"inputs":[],"name":"Unpause","type":"event"}]',
       abiObject: [],
+
+      // 4 byte Directory
+      fourByteResults: [],
+      fourByteSelected: {},
+      fourByteRequestLoading: false,
 
       abiElementTypes: [],
       abiSelectedElementType: 'function',
@@ -352,7 +393,7 @@ export default {
       this.decoded = [];
 
       switch (this.decodeMethod) {
-        case 'typeList':
+        case 'typeList': {
           const typesArray = this.typesArrayToParamsArray(this.typesArrayString);
 
           this.decoded = this.web3.eth.abi.decodeParameters(
@@ -365,14 +406,14 @@ export default {
             this.decoded,
           );
           break;
-
-        case 'ABI':
+        }
+        case 'ABI': {
           const decoded = this.web3.eth.abi.decodeParameters(
             this.abiSelectedItem.inputs,
             this.stripEncodedABI(this.encodedABI),
           );
 
-          for (let i = 0; i < this.abiSelectedItem.inputs.length; i++) {
+          for (let i = 0; i < this.abiSelectedItem.inputs.length; i += 1) {
             const zippedItem = {
               index: i,
               argument: `${this.abiSelectedItem.inputs[i].type} ${this
@@ -383,6 +424,31 @@ export default {
             this.decoded.push(zippedItem);
           }
           break;
+        }
+        case '4byteDirectory': {
+          const args = this.fourByteResultToArgumentArray(this.fourByteSelected);
+
+          const decodedParams = this.web3.eth.abi.decodeParameters(
+            args,
+            this.stripEncodedABI(this.encodedABI),
+          );
+
+          const decodedFourByteDirectory = [];
+
+          for (let i = 0; i < args.length; i += 1) {
+            const zippedItem = {
+              index: i,
+              argument: args[i],
+              value: decodedParams[i],
+            };
+
+            decodedFourByteDirectory.push(zippedItem);
+          }
+          this.decoded = decodedFourByteDirectory;
+          break;
+        }
+        default:
+          break;
       }
     },
 
@@ -392,7 +458,7 @@ export default {
 
       const paramsArray = [];
 
-      for (let i = 0; i < types.length; i++) {
+      for (let i = 0; i < types.length; i += 1) {
         const type = types[i].trim();
         paramsArray.push(type);
       }
@@ -400,22 +466,54 @@ export default {
       return paramsArray;
     },
     stripEncodedABI(ABIString) {
-      if (ABIString.startsWith('0x')) {
-        ABIString = ABIString.substring(2);
+      let ABIStringTemp = ABIString;
+
+      if (ABIStringTemp.startsWith('0x')) {
+        ABIStringTemp = ABIStringTemp.substring(2);
       }
 
       this.strippedFunctionSignature = false;
-      if (ABIString.length % 64 != 0) {
-        ABIString = ABIString.substring(8);
+      if (ABIStringTemp.length % 64 !== 0) {
+        ABIStringTemp = ABIStringTemp.substring(8);
         this.strippedFunctionSignature = true;
       }
 
-      return `0x${ABIString}`;
+      return `0x${ABIStringTemp}`;
+    },
+    extractFunctionSignature(ABIString) {
+      let functionSignature = '';
+      let ABIStringTemp = ABIString;
+
+      if (ABIStringTemp.startsWith('0x')) {
+        ABIStringTemp = ABIStringTemp.substring(2);
+      }
+
+      if (ABIStringTemp.length % 64 !== 0) {
+        functionSignature = ABIStringTemp.substring(0, 8);
+        return {
+          found: true,
+          functionSignature,
+        };
+      }
+
+      return {
+        found: false,
+        functionSignature: '',
+      };
+    },
+    fourByteResultToArgumentArray(fourByteResult) {
+      let args = /\( *([^)]+?) *\)/.exec(fourByteResult);
+
+      if (args[1]) {
+        args = args[1].split(/\s*,\s*/);
+      }
+
+      return args;
     },
     zipTypesValues(typesArray, valuesArray) {
       const zipped = [];
 
-      for (let i = 0; i < typesArray.length; i++) {
+      for (let i = 0; i < typesArray.length; i += 1) {
         const index = i + 1;
         const argument = typesArray[i];
         let value = valuesArray[i];
@@ -434,7 +532,7 @@ export default {
       return zipped;
     },
     matchFunctionSignature(abiObject, encodedInput) {
-      for (let i = 0; i < abiObject.length; i++) {
+      for (let i = 0; i < abiObject.length; i += 1) {
         if (encodedInput.startsWith(this.web3.eth.abi.encodeFunctionSignature(abiObject[
           i]))) {
           this.abiSelectedItem = abiObject[i];
