@@ -1,276 +1,315 @@
 <template>
   <div>
-    <form @submit.prevent="decode">
-      <div class="form-group">
-        <label for="abiEncoded">Encoded ABI</label>
-        <input
-          type="text"
-          class="form-control text-monospace"
-          id="abiEncoded"
-          aria-describedby="abiEncodedHelp"
-          v-model="encodedABI"
-        >
-        <small
-          id="abiEncodedHelp"
-          class="form-text text-muted"
-        >Add the ABI encoded
-          hex
-          (i.e. <span class="text-monospace">0x11223344</span>).</small>
+    <div class="row">
+      <div class="col">
+        <h2>
+          Input
+        </h2>
       </div>
+    </div>
 
-      <div class="form-group">
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="decodeMethod"
-            id="decodeMethod1"
-            value="typeList"
-            checked
-            v-model="decodeMethod"
-          >
-          <label
-            class="form-check-label"
-            for="decodeMethod1"
-          >
-            Type list
-          </label>
-        </div>
+    <div class="row">
+      <div class="col">
+        <form @submit.prevent="decode">
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <label for="abiEncoded">Encoded ABI</label>
+                <input
+                  type="text"
+                  class="form-control "
+                  id="abiEncoded"
+                  aria-describedby="abiEncodedHelp"
+                  v-model="encodedABI"
+                >
+                <small
+                  id="abiEncodedHelp"
+                  class="form-text text-muted"
+                >Add the ABI encoded
+                  hex
+                  (i.e. <span class="">0x11223344</span>).</small>
+              </div>
+            </div>
+          </div>
 
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="decodeMethod"
-            id="decodeMethod2"
-            value="ABI"
-            v-model="decodeMethod"
-          >
-          <label
-            class="form-check-label"
-            for="decodeMethod2"
-          >
-            ABI
-          </label>
-        </div>
-
-        <div class="form-check">
-          <input
-            class="form-check-input"
-            type="radio"
-            name="decodeMethod"
-            id="decodeMethod3"
-            value="4byteDirectory"
-            v-model="decodeMethod"
-          >
-          <label
-            class="form-check-label"
-            for="decodeMethod3"
-          >
-            4byte Directory API
-          </label>
-        </div>
-      </div>
-
-      <div
-        class="form-group"
-        v-if="decodeMethod == 'typeList'"
-      >
-        <label for="typesArrayString">Types</label>
-        <input
-          type="text"
-          class="form-control"
-          id="typesArrayString"
-          aria-describedby="typesArrayStringHelp"
-          v-model="typesArrayString"
-        >
-        <small
-          id="typesArrayStringHelp"
-          class="form-text text-muted"
-        >
-          i.e.
-          <span>bool</span>,
-          <span>int</span>,
-          <span>uint</span>,
-          <span>address</span>,
-          <span>bytes</span>,
-          <span>string</span>.
-          <a
-            href="https://solidity.readthedocs.io/en/latest/types.html"
-            class="badge badge-info"
-          >See full list</a>
-        </small>
-      </div>
-
-      <template v-if="decodeMethod == 'ABI'">
-        <div class="form-group">
-          <label for="ABITextarea">ABI</label>
-          <textarea
-            class="form-control text-monospace"
-            id="ABITextarea"
-            rows="5"
-            v-model="abi"
-          />
-        </div>
-
-        <div class="form-group">
-          <label for="elementType">Element type (function, constructor, event)</label>
-          <select
-            class="form-control"
-            id="elementType"
-            v-model="abiSelectedElementType"
-          >
-            <template v-for="el in abiElementTypes">
-              <option :key="`abi-${el}`">
-                {{ el }}
-              </option>
-            </template>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="elementType">Select item</label>
-          <select
-            class="form-control"
-            id="elementType"
-            v-model="abiSelectedItem"
-          >
-            <template v-for="(abiItem, index) in abiElementTypeOptions">
-              <option
-                :key="`abiItem-${index}`"
-                :value="abiItem"
-              >
-                {{ abiItem.name }}
-                <!-- Arguments -->
-                (
-                <template v-for="(input, inputIndex) in abiItem.inputs">
-                  {{ input.type }} {{ input.name }}<template
-                    v-if="inputIndex + 1 < abiItem.inputs.length"
+          <div class="row">
+            <div class="col">
+              <div class="form-group">
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="decodeMethod"
+                    id="decodeMethod1"
+                    value="typeList"
+                    checked
+                    v-model="decodeMethod"
                   >
-                    ,
-                  </template>
-                </template>
-                )
-              </option>
-            </template>
-          </select>
-        </div>
-      </template>
+                  <label
+                    class="form-check-label"
+                    for="decodeMethod1"
+                  >
+                    Type list
+                  </label>
+                </div>
 
-      <template>
-        <div
-          class="form-group"
-          v-if="decodeMethod == '4byteDirectory'"
-        >
-          <label for="typesArrayString">Results</label>
-          <template v-if="fourByteRequestLoading">
-            <div>
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="decodeMethod"
+                    id="decodeMethod2"
+                    value="ABI"
+                    v-model="decodeMethod"
+                  >
+                  <label
+                    class="form-check-label"
+                    for="decodeMethod2"
+                  >
+                    ABI
+                  </label>
+                </div>
+
+                <div class="form-check">
+                  <input
+                    class="form-check-input"
+                    type="radio"
+                    name="decodeMethod"
+                    id="decodeMethod3"
+                    value="4byteDirectory"
+                    v-model="decodeMethod"
+                  >
+                  <label
+                    class="form-check-label"
+                    for="decodeMethod3"
+                  >
+                    4byte Directory API
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col">
               <div
-                class="spinner-border text-primary"
-                role="status"
+                class="form-group"
+                v-if="decodeMethod == 'typeList'"
               >
-                <span class="sr-only">Loading...</span>
+                <label for="typesArrayString">Types</label>
+                <input
+                  type="text"
+                  class="form-control"
+                  id="typesArrayString"
+                  aria-describedby="typesArrayStringHelp"
+                  v-model="typesArrayString"
+                >
+                <small
+                  id="typesArrayStringHelp"
+                  class="form-text text-muted"
+                >
+                  i.e.
+                  <span>bool</span>,
+                  <span>int</span>,
+                  <span>uint</span>,
+                  <span>address</span>,
+                  <span>bytes</span>,
+                  <span>string</span>.
+                  <a
+                    href="https://solidity.readthedocs.io/en/latest/types.html"
+                    class="badge badge-info"
+                  >See full list</a>
+                </small>
+              </div>
+            </div>
+          </div>
+
+          <template v-if="decodeMethod == 'ABI'">
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="ABITextarea">ABI</label>
+                  <textarea
+                    class="form-control "
+                    id="ABITextarea"
+                    rows="5"
+                    v-model="abi"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="elementType">Element type (function, constructor, event)</label>
+                  <select
+                    class="form-control"
+                    id="elementType"
+                    v-model="abiSelectedElementType"
+                  >
+                    <template v-for="el in abiElementTypes">
+                      <option :key="`abi-${el}`">
+                        {{ el }}
+                      </option>
+                    </template>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div class="col">
+                <div class="form-group">
+                  <label for="elementType">Select <strong>{{ abiSelectedElementType }}</strong></label>
+                  <select
+                    class="form-control"
+                    id="elementType"
+                    v-model="abiSelectedItem"
+                  >
+                    <option
+                      disabled
+                      value="selected"
+                    >
+                      Pick a {{ abiSelectedElementType }}
+                    </option>
+                    <template v-for="(abiItem, index) in abiElementTypeOptions">
+                      <option
+                        :key="`abiItem-${index}`"
+                        :value="abiItem"
+                      >
+                        {{ abiItem.pretty_name }}
+                      </option>
+                    </template>
+                  </select>
+                </div>
               </div>
             </div>
           </template>
-          <template v-else-if="fourByteResults.length">
-            <select
-              class="form-control"
-              id="resultsSelect"
-              v-model="fourByteSelected"
-            >
-              <template v-for="(fourByteItem, index) in fourByteResults">
-                <option
-                  :key="`fourByteItem-${index}`"
-                  selected
+
+          <template>
+            <div class="row">
+              <div class="col">
+                <div
+                  class="form-group"
+                  v-if="decodeMethod == '4byteDirectory'"
                 >
-                  {{ fourByteItem.text_signature }}
-                </option>
-              </template>
-            </select>
-          </template>
-          <template v-else>
-            <input
-              class="form-control"
-              type="text"
-              placeholder="Function signature was not found"
-              readonly
-            >
-          </template>
-        </div>
-      </template>
-
-      <button
-        type="submit"
-        class="btn btn-primary btn-lg btn-block"
-      >
-        Decode
-      </button>
-    </form>
-
-    <div class="row mb-3">
-      <div class="col-sm">
-        <div class="row mb-3">
-          <div
-            class="col-sm"
-            v-if="(strippedFunctionSignature == false) || (strippedFunctionSignature == true)"
-          >
-            Stripped function signature: <span
-              class="text-monospace"
-            >{{ strippedFunctionSignature }}</span>
-          </div>
-        </div>
-
-        <div class="row mb-3">
-          <div class="col-sm">
-            <div class="text-monospace">
-              <table
-                class="table"
-                v-if="decoded.length > 0"
-              >
-                <thead>
-                  <tr>
-                    <th scope="col">
-                      #
-                    </th>
-                    <th scope="col">
-                      Argument
-                    </th>
-                    <th scope="col">
-                      Value
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <template v-for="decodedItem in decoded">
-                    <tr :key="decodedItem.index">
-                      <td scope="row">
-                        {{ decodedItem.index }}
-                      </td>
-                      <td scope="row">
-                        {{ decodedItem.argument }}
-                      </td>
-                      <td
-                        scope="row"
-                        v-if="(decodedItem.argument.startsWith('uint') || decodedItem.argument.startsWith('int'))"
+                  <label for="typesArrayString">Results</label>
+                  <template v-if="fourByteRequestLoading">
+                    <div>
+                      <div
+                        class="spinner-border text-primary"
+                        role="status"
                       >
-                        {{ decodedItem.value.toString(10) }}<sub>10</sub>
-                        (0x{{ decodedItem.value.toString(16) }}<sub>16</sub>)
-                      </td>
-                      <td
-                        scope="row"
-                        v-else
-                      >
-                        {{ decodedItem.value }}
-                      </td>
-                    </tr>
+                        <span class="sr-only">Loading...</span>
+                      </div>
+                    </div>
                   </template>
-                </tbody>
-              </table>
+                  <template v-else-if="fourByteResults.length">
+                    <select
+                      class="form-control"
+                      id="resultsSelect"
+                      v-model="fourByteSelected"
+                    >
+                      <option
+                        disabled
+                        value="selected"
+                      >
+                        Pick a matched function
+                      </option>
+                      <template v-for="(fourByteItem, index) in fourByteResults">
+                        <option
+                          :key="`fourByteItem-${index}`"
+                        >
+                          {{ fourByteItem.text_signature }}
+                        </option>
+                      </template>
+                    </select>
+                  </template>
+                  <template v-else>
+                    <input
+                      class="form-control"
+                      type="text"
+                      placeholder="Function signature was not found"
+                      readonly
+                    >
+                  </template>
+                </div>
+              </div>
             </div>
-          </div>
+          </template>
+
+          <button
+            type="submit"
+            class="btn btn-primary btn-lg btn-block"
+          >
+            Decode
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <div class="row pt-5">
+      <div class="col">
+        <h2>
+          Output
+        </h2>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col">
+        <div
+          class="table-responsive "
+          v-if="decoded.length > 0"
+        >
+          <table
+            class="table table-hover"
+          >
+            <thead>
+              <tr>
+                <th scope="col">
+                  #
+                </th>
+                <th scope="col">
+                  Argument
+                </th>
+                <th scope="col">
+                  Value
+                </th>
+              </tr>
+            </thead>
+
+            <tbody>
+              <template v-for="decodedItem in decoded">
+                <tr :key="decodedItem.index">
+                  <td scope="row">
+                    {{ decodedItem.index }}
+                  </td>
+                  <td scope="row">
+                    {{ decodedItem.argument }}
+                  </td>
+                  <td
+                    scope="row"
+                    v-if="(decodedItem.argument.startsWith('uint') || decodedItem.argument.startsWith('int'))"
+                  >
+                    {{ decodedItem.value.toString(10) }}<sub>10</sub>
+                    (0x{{ decodedItem.value.toString(16) }}<sub>16</sub>)
+                  </td>
+                  <td
+                    scope="row"
+                    v-else
+                  >
+                    {{ decodedItem.value }}
+                  </td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
         </div>
+        <h4 v-else>
+          No output, click "decode".
+        </h4>
       </div>
     </div>
   </div>
@@ -312,8 +351,21 @@ export default {
         const abiElementTypeOptions = [];
 
         for (let abiItemIndex = 0; abiItemIndex < this.abiObject.length; abiItemIndex += 1) {
-          if (this.abiObject[abiItemIndex].type === val) {
-            abiElementTypeOptions.push(this.abiObject[abiItemIndex]);
+          const abiItem = this.abiObject[abiItemIndex];
+
+          if (abiItem.type === val) {
+            const functionArguments = [];
+            for (
+              let argumentsIndex = 0;
+              argumentsIndex < abiItem.inputs.length;
+              argumentsIndex += 1
+            ) {
+              const itemInput = abiItem.inputs[argumentsIndex];
+              functionArguments.push(`${itemInput.type} ${itemInput.name}`);
+            }
+
+            abiItem.pretty_name = `${abiItem.name}(${functionArguments.join(', ')})`;
+            abiElementTypeOptions.push(abiItem);
           }
         }
 
@@ -336,22 +388,16 @@ export default {
       immediate: true,
     },
     decodeMethod: {
-      async handler(val) {
+      handler(val) {
         if (val === '4byteDirectory') {
-          this.fourByteRequestLoading = true;
-
-          const funcSigResult = this.extractFunctionSignature(this.encodedABI);
-          if (!funcSigResult.found) {
-            // Display error
-            console.log('Implement `!funcSigResult.found`');
-            return;
-          }
-
-          const funcSig = funcSigResult.functionSignature;
-          const requestResult = await this.$http.get(this.fourByteDirectoryUrl + funcSig);
-          this.fourByteResults = requestResult.data.results;
-
-          this.fourByteRequestLoading = false;
+          this.refreshFourByteSignatures();
+        }
+      },
+    },
+    encodedABI: {
+      handler(val) {
+        if (this.decodeMethod === '4byteDirectory') {
+          this.refreshFourByteSignatures();
         }
       },
     },
@@ -370,7 +416,7 @@ export default {
 
       // 4 byte Directory
       fourByteResults: [],
-      fourByteSelected: {},
+      fourByteSelected: 'selected',
       fourByteRequestLoading: false,
 
       abiElementTypes: [],
@@ -539,6 +585,17 @@ export default {
           return;
         }
       }
+    },
+    async refreshFourByteSignatures() {
+      this.fourByteRequestLoading = true;
+
+      const funcSigResult = this.extractFunctionSignature(this.encodedABI);
+
+      const funcSig = funcSigResult.functionSignature;
+      const requestResult = await this.$http.get(this.fourByteDirectoryUrl + funcSig);
+      this.fourByteResults = requestResult.data.results;
+
+      this.fourByteRequestLoading = false;
     },
   },
 };
