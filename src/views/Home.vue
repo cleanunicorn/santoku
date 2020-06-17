@@ -1,6 +1,6 @@
 <template>
   <div class="container">
-    <ABIDecoder/>
+    <ABIDecoder />
   </div>
 </template>
 
