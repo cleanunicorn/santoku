@@ -588,6 +588,7 @@ export default {
     },
     async refreshFourByteSignatures() {
       this.fourByteRequestLoading = true;
+      this.fourByteSelected = 'selected';
 
       const funcSigResult = this.extractFunctionSignature(this.encodedABI);
 
