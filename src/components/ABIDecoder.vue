@@ -294,7 +294,7 @@
                     v-if="(decodedItem.argument.startsWith('uint') || decodedItem.argument.startsWith('int'))"
                   >
                     {{ decodedItem.value.toString(10) }}<sub>10</sub>
-                    (0x{{ decodedItem.value.toString(16) }}<sub>16</sub>)
+                    (0x{{ (decodedItem.value).toString(16) }}<sub>16</sub>)
                   </td>
                   <td
                     scope="row"
@@ -459,16 +459,15 @@ export default {
             this.stripEncodedABI(this.encodedABI),
           );
 
+          const args = [];
           for (let i = 0; i < this.abiSelectedItem.inputs.length; i += 1) {
-            const zippedItem = {
-              index: i,
-              argument: `${this.abiSelectedItem.inputs[i].type} ${this
-                .abiSelectedItem.inputs[i].name}`,
-              value: decoded[i],
-            };
-
-            this.decoded.push(zippedItem);
+            args.push(`${this.abiSelectedItem.inputs[i].type} ${this.abiSelectedItem.inputs[i].name}`);
           }
+
+          this.decoded = this.zipTypesValues(
+            args,
+            decoded,
+          );
           break;
         }
         case '4byteDirectory': {
@@ -479,18 +478,10 @@ export default {
             this.stripEncodedABI(this.encodedABI),
           );
 
-          const decodedFourByteDirectory = [];
-
-          for (let i = 0; i < args.length; i += 1) {
-            const zippedItem = {
-              index: i,
-              argument: args[i],
-              value: decodedParams[i],
-            };
-
-            decodedFourByteDirectory.push(zippedItem);
-          }
-          this.decoded = decodedFourByteDirectory;
+          this.decoded = this.zipTypesValues(
+            args,
+            decodedParams,
+          );
           break;
         }
         default:
