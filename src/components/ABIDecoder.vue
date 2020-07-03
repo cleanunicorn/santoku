@@ -294,7 +294,7 @@
                     v-if="(decodedItem.argument.startsWith('uint') || decodedItem.argument.startsWith('int'))"
                   >
                     {{ decodedItem.value.toString(10) }}<sub>10</sub>
-                    (0x{{ (decodedItem.value).toString(16) }}<sub>16</sub>)
+                    ({{ (decodedItem.value).toString(16) }}<sub>16</sub>)
                   </td>
                   <td
                     scope="row"
