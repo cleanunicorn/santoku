@@ -293,8 +293,23 @@
                     scope="row"
                     v-if="(decodedItem.argument.startsWith('uint') || decodedItem.argument.startsWith('int'))"
                   >
-                    {{ decodedItem.value.toString(10) }}<sub>10</sub>
-                    ({{ (decodedItem.value).toString(16) }}<sub>16</sub>)
+                    <template v-if="Array.isArray(decodedItem.value)">
+                      <template v-for="(valueItem, index) in decodedItem.value">
+                        <span :key="index">
+                          <template v-if="index == 0">[</template>{{ valueItem.toString(10) }}<template v-if="index < (decodedItem.value.length - 1)">, </template><template v-if="index == (decodedItem.value.length - 1)">]</template>
+                        </span>
+                      </template><sub>10</sub>
+                      <br>
+                      <template v-for="(valueItem, index) in decodedItem.value">
+                        <span :key="index">
+                          <template v-if="index == 0">[</template>{{ valueItem.toString(16) }}<template v-if="index < (decodedItem.value.length - 1)">, </template><template v-if="index == (decodedItem.value.length - 1)">]</template>
+                        </span>
+                      </template><sub>16</sub>
+                    </template>
+                    <template v-else>
+                      {{ decodedItem.value.toString(10) }}<sub>10</sub>
+                      ({{ (decodedItem.value).toString(16) }}<sub>16</sub>)
+                    </template>
                   </td>
                   <td
                     scope="row"
@@ -317,7 +332,7 @@
 
 <script>
 import Web3 from 'web3';
-import example from './example';
+import example from './bug';
 
 export default {
   name: 'ABIDecoder',
@@ -553,16 +568,24 @@ export default {
       for (let i = 0; i < typesArray.length; i += 1) {
         const index = i + 1;
         const argument = typesArray[i];
-        let value = valuesArray[i];
+        const value = valuesArray[i];
+        let valueProcessed = value;
 
         if (argument.startsWith('uint') || argument.startsWith('int')) {
-          value = new this.BN(value);
+          if (Array.isArray(value)) {
+            valueProcessed = [];
+            for (let vi = 0; vi < value.length; vi += 1) {
+              valueProcessed.push(new this.BN(value[vi]));
+            }
+          } else {
+            valueProcessed = new this.BN(value);
+          }
         }
 
         zipped.push({
           index,
           argument,
-          value,
+          value: valueProcessed,
         });
       }
 
