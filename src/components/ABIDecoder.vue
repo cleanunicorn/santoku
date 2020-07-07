@@ -332,7 +332,7 @@
 
 <script>
 import Web3 from 'web3';
-import example from './bug';
+import example from './example';
 
 export default {
   name: 'ABIDecoder',
