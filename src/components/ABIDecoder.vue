@@ -520,6 +520,8 @@ export default {
     stripEncodedABI(ABIString) {
       let ABIStringTemp = ABIString;
 
+      ABIStringTemp = ABIStringTemp.replace(/ /g, "");
+
       if (ABIStringTemp.startsWith('0x')) {
         ABIStringTemp = ABIStringTemp.substring(2);
       }
